@@ -111,7 +111,7 @@ st.markdown("# 🎵 Application de Recommandation Musicale 🎵")
 tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par Filtres"])
 
 with tab2:
-    st.markdown('<div class="section-banner">', unsafe_allow_html=True)
+    #st.markdown('<div class="section-banner">', unsafe_allow_html=True)
     
     # Authentication
     token = get_token()
@@ -179,7 +179,7 @@ with tab1:
     prompt = st.text_area("Entrez votre demande pour Chat GPT", "Donne-moi une playlist de musique pop des années 70", key='chatgpt_prompt')
     if st.button('Obtenir des Recommandations Chat GPT', key='chatgpt_button'):
         progress_bar = st.progress(0)
-        for percent_complete in range(100):
+        for percent_complete in range(10):
             progress_bar.progress(percent_complete + 1)
 
             gpt_response = get_openai_recommendations(prompt)
