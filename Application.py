@@ -48,7 +48,13 @@ def search_artists(query, token):
 def get_available_genres(token):
     headers = {'Authorization': f'Bearer {token}'}
     response = requests.get('https://api.spotify.com/v1/recommendations/available-genre-seeds', headers=headers)
-    return response.json().get('genres', [])
+    
+    if response.status_code == 200:
+        return response.json().get('genres', [])
+    else:
+        st.error(f"Erreur lors de la récupération des genres : {response.status_code}")
+        return []
+
 
 # Function to get recommendations based on selected filters
 def get_recommendations(token, seed_artists=None, seed_genres=None, target_popularity=None, target_energy=None, target_danceability=None):
