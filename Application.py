@@ -111,8 +111,6 @@ st.markdown("# 🎵 Application de Recommandation Musicale 🎵")
 tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par Filtres"])
 
 with tab2:
-    #st.markdown('<div class="section-banner">', unsafe_allow_html=True)
-    
     # Authentication
     token = get_token()
 
@@ -138,39 +136,59 @@ with tab2:
             st.write("Aucun artiste trouvé")
 
     st.markdown("<h2>Attributs des Pistes</h2>", unsafe_allow_html=True)
-    popularity = st.slider('Popularité', 0, 100, (0, 100))
-    energy_level = st.slider('Niveau d’Énergie', 0, 100, (0, 100))
-    danceability_level = st.slider('Dansabilité', 0, 100, (0, 100))
-
-    st.markdown('</div>', unsafe_allow_html=True)
+    popularity = st.slider('Popularité', 1, 100, (1, 100))
+    energy_level = st.slider('Niveau d’Énergie', 1, 100, (1, 100))
+    danceability_level = st.slider('Dansabilité', 1, 100, (1, 100))
 
     if st.button('Recommandations'):
         with st.spinner('Récupération des recommandations...'):
-            seed_artists = artist_id if artist_id else None
-            seed_genres = ','.join(selected_genres).lower() if selected_genres else None
-            
-            recommendations = get_recommendations(
-                token, 
-                seed_artists=seed_artists, 
-                seed_genres=seed_genres, 
-                target_popularity=popularity, 
-                target_energy=energy_level, 
-                target_danceability=danceability_level
-            )
-            
+            if artist_id:
+                # Recommander les meilleures pistes de l'artiste sélectionné
+                response = requests.get(f'https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=US', headers={'Authorization': f'Bearer {token}'})
+                recommendations = response.json().get('tracks', [])
+            elif selected_genres:
+                # Recommander des pistes basées sur les genres sélectionnés
+                seed_genres = ','.join(selected_genres).lower()
+                recommendations = get_recommendations(
+                    token,
+                    seed_genres=seed_genres,
+                    target_popularity=popularity,
+                    target_energy=energy_level,
+                    target_danceability=danceability_level
+                )
+            else:
+                # Obtenir des recommandations générales
+                recommendations = get_recommendations(
+                    token,
+                    target_popularity=popularity,
+                    target_energy=energy_level,
+                    target_danceability=danceability_level
+                )
+
             if recommendations:
-                for track in recommendations:
-                    st.markdown('<div class="result-card">', unsafe_allow_html=True)
-                    st.write(f"**Artiste :** {', '.join([artist['name'] for artist in track['artists']])}")
-                    st.write(f"**Piste :** {track['name']}")
-                    st.write(f"**Année de Sortie :** {track['album']['release_date'][:4]}")
-                    if track['album']['images']:
-                        st.image(track['album']['images'][0]['url'], width=300)
-                    if track['preview_url']:
+                # Filtrer les recommandations pour n'afficher que celles avec un preview_url non vide
+                recommendations_with_preview = [track for track in recommendations if track['preview_url']]
+
+                # Limiter l'affichage à 10 résultats
+                count = 0
+                for track in recommendations_with_preview:
+                    if count >= 10:
+                        break
+                    col1, col2 = st.columns([1, 3])
+                    with col1:
+                        if track['album']['images']:
+                            st.image(track['album']['images'][0]['url'], use_column_width=True)
+                    with col2:
+                        st.write(f"**{track['name']}**")
+                        st.write(f"{', '.join([artist['name'] for artist in track['artists']])}")
+                        st.write(f"*{track['album']['name']}*")
+                        year = track['album']['release_date'].split('-')[0]
+                        st.write(f"{year}")
                         st.audio(track['preview_url'], format="audio/mp3")
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    count += 1
             else:
                 st.write("Aucune piste trouvée correspondant aux critères")
+
 
 with tab1:
     st.markdown("<h2>Recommandations Chat GPT</h2>", unsafe_allow_html=True)
