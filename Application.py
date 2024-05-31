@@ -179,7 +179,7 @@ with tab1:
     prompt = st.text_area("Entrez votre demande pour Chat GPT", "Donne-moi une playlist de musique pop des années 70", key='chatgpt_prompt')
     if st.button('Obtenir des Recommandations Chat GPT', key='chatgpt_button'):
         progress_bar = st.progress(0)
-        for percent_complete in range(10):
+        for percent_complete in range(100):
             progress_bar.progress(percent_complete + 1)
 
             gpt_response = get_openai_recommendations(prompt)
@@ -187,9 +187,10 @@ with tab1:
             # Convert the response to track recommendations
             token = get_token()
             recommendations = get_spotify_recommendations_from_gpt(gpt_response, token)
+            progress_bar.empty()
             
             if recommendations:
-                for track in recommendations:
+                for track in recommendations[:10]:
                     col1, col2 = st.columns([1, 3])
                     with col1:
                         if track['image_url']:
