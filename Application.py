@@ -173,12 +173,15 @@ with tab2:
                 st.write("Aucune piste trouvée correspondant aux critères")
 
 with tab1:
-    st.markdown('<div class="section-banner">', unsafe_allow_html=True)
+    #st.markdown('<div class="section-banner">', unsafe_allow_html=True)
     
     st.markdown("<h2>Recommandations Chat GPT</h2>", unsafe_allow_html=True)
     prompt = st.text_area("Entrez votre demande pour Chat GPT", "Donne-moi une playlist de musique pop des années 70", key='chatgpt_prompt')
     if st.button('Obtenir des Recommandations Chat GPT', key='chatgpt_button'):
-        with st.spinner('Récupération des recommandations d’OpenAI...'):
+        progress_bar = st.progress(0)
+        for percent_complete in range(100):
+            progress_bar.progress(percent_complete + 1)
+
             gpt_response = get_openai_recommendations(prompt)
             
             # Convert the response to track recommendations
@@ -190,12 +193,13 @@ with tab1:
                     col1, col2 = st.columns([1, 3])
                     with col1:
                         if track['image_url']:
-                            st.image(track['image_url'], width=100)
+                            st.image(track['image_url'], use_column_width=True)
                     with col2:
                         st.write(f"**{track['name']}**")
                         st.write(f"{track['artist']}")
                         st.write(f"*{track['album']}*")
-                        st.write(f"{track['release_date']}")
+                        year = track['release_date'].split('-')[0]
+                        st.write(f"{year}")
                         if track['preview_url']:
                             st.audio(track['preview_url'], format="audio/mp3")
             else:
