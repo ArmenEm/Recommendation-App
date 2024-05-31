@@ -176,7 +176,7 @@ with tab1:
     #st.markdown('<div class="section-banner">', unsafe_allow_html=True)
     
     st.markdown("<h2>Recommandations Chat GPT</h2>", unsafe_allow_html=True)
-    prompt = st.text_area("Entrez votre demande pour Chat GPT", "Donne-moi une playlist de musique pop des années 70", key='chatgpt_prompt')
+    prompt = st.text_area("Entrez votre demande pour Chat GPT", "Fais moi une playlist 90s house classics", key='chatgpt_prompt')
     if st.button('Obtenir des Recommandations Chat GPT', key='chatgpt_button'):
         progress_bar = st.progress(0)
         
@@ -193,7 +193,14 @@ with tab1:
         progress_bar.empty()
             
         if recommendations:
-            for track in recommendations[:10]:
+            # Filtrer les recommandations pour n'afficher que celles avec un preview_url non vide
+            recommendations_with_preview = [track for track in recommendations if track['preview_url']]
+            
+            # Limiter l'affichage à 10 résultats
+            count = 0
+            for track in recommendations_with_preview:
+                if count >= 10:
+                    break
                 col1, col2 = st.columns([1, 3])
                 with col1:
                     if track['image_url']:
@@ -205,6 +212,7 @@ with tab1:
                     year = track['release_date'].split('-')[0]
                     st.write(f"{year}")
                     st.audio(track['preview_url'], format="audio/mp3")
+                count += 1
         else:
             st.write("Aucune piste trouvée correspondant aux critères")
     
