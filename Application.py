@@ -10,6 +10,13 @@ CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
+if not CLIENT_ID:
+    st.error("CLIENT_ID n'est pas défini. Assurez-vous qu'il est configuré dans vos variables d'environnement.")
+if not CLIENT_SECRET:
+    st.error("CLIENT_SECRET n'est pas défini. Assurez-vous qu'il est configuré dans vos variables d'environnement.")
+if not OPENAI_API_KEY:
+    st.error("OPENAI_API_KEY n'est pas défini. Assurez-vous qu'elle est configurée dans vos variables d'environnement.")
+
 
 # Configuration de l'API OpenAI
 openai.api_key = OPENAI_API_KEY
@@ -98,10 +105,10 @@ def get_spotify_recommendations_from_gpt(gpt_response, token):
     return track_details
 
 # Main Streamlit application
-st.title("Music Recommendation App")
+st.markdown("# 🎵 Application de Recommandation Musicale")
 
 # Tabs
-tab1, tab2 = st.tabs(["Chat GPT Recommendations" , "Filter-based Recommendations"])
+tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par Filtres"])
 
 with tab2:
     st.markdown('<div class="section-banner">', unsafe_allow_html=True)
@@ -113,32 +120,32 @@ with tab2:
     genres = get_available_genres(token)
     formatted_genres = [genre.capitalize() for genre in genres]
 
-    st.markdown("<h2>Genre Selection</h2>", unsafe_allow_html=True)
-    selected_genres = st.multiselect('Select Genres', formatted_genres, key='genre_select')
+    st.markdown("<h2>Sélection de Genres</h2>", unsafe_allow_html=True)
+    selected_genres = st.multiselect('Sélectionnez des Genres', formatted_genres, key='genre_select')
 
-    st.markdown("<h2>Artist Search</h2>", unsafe_allow_html=True)
-    artist_query = st.text_input('Search for Artists')
+    st.markdown("<h2>Recherche d'Artistes</h2>", unsafe_allow_html=True)
+    artist_query = st.text_input('Rechercher des Artistes')
     selected_artist = None
     artist_id = None
     if artist_query:
         artists = search_artists(artist_query, token)
         if artists:
             artist_options = {artist['name']: artist['id'] for artist in artists}
-            selected_artist = st.selectbox('Select Artist', list(artist_options.keys()), key='artist_select')
+            selected_artist = st.selectbox('Sélectionnez un Artiste', list(artist_options.keys()), key='artist_select')
             if selected_artist:
                 artist_id = artist_options[selected_artist]
         else:
-            st.write("No artists found")
+            st.write("Aucun artiste trouvé")
 
-    st.markdown("<h2>Track Attributes</h2>", unsafe_allow_html=True)
-    popularity = st.slider('Popularity', 0, 100, (0, 100))
-    energy_level = st.slider('Energy Level', 0, 100, (0, 100))
-    danceability_level = st.slider('Danceability', 0, 100, (0, 100))
+    st.markdown("<h2>Attributs des Pistes</h2>", unsafe_allow_html=True)
+    popularity = st.slider('Popularité', 0, 100, (0, 100))
+    energy_level = st.slider('Niveau d’Énergie', 0, 100, (0, 100))
+    danceability_level = st.slider('Dansabilité', 0, 100, (0, 100))
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button('Recommendation'):
-        with st.spinner('Fetching recommendations...'):
+    if st.button('Recommandations'):
+        with st.spinner('Récupération des recommandations...'):
             seed_artists = artist_id if artist_id else None
             seed_genres = ','.join(selected_genres).lower() if selected_genres else None
             
@@ -154,24 +161,24 @@ with tab2:
             if recommendations:
                 for track in recommendations:
                     st.markdown('<div class="result-card">', unsafe_allow_html=True)
-                    st.write(f"**Artist:** {', '.join([artist['name'] for artist in track['artists']])}")
-                    st.write(f"**Track:** {track['name']}")
-                    st.write(f"**Release Year:** {track['album']['release_date'][:4]}")
+                    st.write(f"**Artiste :** {', '.join([artist['name'] for artist in track['artists']])}")
+                    st.write(f"**Piste :** {track['name']}")
+                    st.write(f"**Année de Sortie :** {track['album']['release_date'][:4]}")
                     if track['album']['images']:
                         st.image(track['album']['images'][0]['url'], width=300)
                     if track['preview_url']:
                         st.audio(track['preview_url'], format="audio/mp3")
                     st.markdown('</div>', unsafe_allow_html=True)
             else:
-                st.write("No tracks found matching the criteria")
+                st.write("Aucune piste trouvée correspondant aux critères")
 
 with tab1:
     st.markdown('<div class="section-banner">', unsafe_allow_html=True)
     
-    st.markdown("<h2>Chat GPT Recommendations</h2>", unsafe_allow_html=True)
-    prompt = st.text_area("Enter your prompt for Chat GPT", "Give me a playlist of pop music from the 70s", key='chatgpt_prompt')
-    if st.button('Get Chat GPT Recommendations', key='chatgpt_button'):
-        with st.spinner('Fetching recommendations from OpenAI...'):
+    st.markdown("<h2>Recommandations Chat GPT</h2>", unsafe_allow_html=True)
+    prompt = st.text_area("Entrez votre demande pour Chat GPT", "Donne-moi une playlist de musique pop des années 70", key='chatgpt_prompt')
+    if st.button('Obtenir des Recommandations Chat GPT', key='chatgpt_button'):
+        with st.spinner('Récupération des recommandations d’OpenAI...'):
             gpt_response = get_openai_recommendations(prompt)
             
             # Convert the response to track recommendations
@@ -181,17 +188,17 @@ with tab1:
             if recommendations:
                 for track in recommendations:
                     st.markdown('<div class="result-card">', unsafe_allow_html=True)
-                    st.write(f"**Artist:** {track['artist']}")
-                    st.write(f"**Track:** {track['name']}")
-                    st.write(f"**Album:** {track['album']}")
-                    st.write(f"**Release Year:** {track['release_date'][:4]}")
+                    st.write(f"**Artiste :** {track['artist']}")
+                    st.write(f"**Piste :** {track['name']}")
+                    st.write(f"**Album :** {track['album']}")
+                    st.write(f"**Année de Sortie :** {track['release_date'][:4]}")
                     if track['image_url']:
                         st.image(track['image_url'], width=300)
                     if track['preview_url']:
                         st.audio(track['preview_url'], format="audio/mp3")
                     st.markdown('</div>', unsafe_allow_html=True)
             else:
-                st.write("No tracks found matching the criteria")
+                st.write("Aucune piste trouvée correspondant aux critères")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
