@@ -105,7 +105,7 @@ def get_spotify_recommendations_from_gpt(gpt_response, token):
     return track_details
 
 # Main Streamlit application
-st.markdown("# 🎵 Application de Recommandation Musicale")
+st.markdown("# 🎵 Application de Recommandation Musicale 🎵")
 
 # Tabs
 tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par Filtres"])
@@ -187,16 +187,17 @@ with tab1:
             
             if recommendations:
                 for track in recommendations:
-                    st.markdown('<div class="result-card">', unsafe_allow_html=True)
-                    st.write(f"**Artiste :** {track['artist']}")
-                    st.write(f"**Piste :** {track['name']}")
-                    st.write(f"**Album :** {track['album']}")
-                    st.write(f"**Année de Sortie :** {track['release_date'][:4]}")
-                    if track['image_url']:
-                        st.image(track['image_url'], width=300)
-                    if track['preview_url']:
-                        st.audio(track['preview_url'], format="audio/mp3")
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    col1, col2 = st.columns([1, 3])
+                    with col1:
+                        if track['image_url']:
+                            st.image(track['image_url'], width=100)
+                    with col2:
+                        st.write(f"**{track['name']}**")
+                        st.write(f"{track['artist']}")
+                        st.write(f"*{track['album']}*")
+                        st.write(f"{track['release_date']}")
+                        if track['preview_url']:
+                            st.audio(track['preview_url'], format="audio/mp3")
             else:
                 st.write("Aucune piste trouvée correspondant aux critères")
     
@@ -236,6 +237,11 @@ st.markdown("""
         padding: 10px;
         border-radius: 10px;
         margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .result-card img {
+        margin-right: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
