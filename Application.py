@@ -45,15 +45,23 @@ def search_artists(query, token):
     return response.json().get('artists', {}).get('items', [])
 
 # Function to get available genres
+import time
+
 def get_available_genres(token):
     headers = {'Authorization': f'Bearer {token}'}
     response = requests.get('https://api.spotify.com/v1/recommendations/available-genre-seeds', headers=headers)
     
     if response.status_code == 200:
         return response.json().get('genres', [])
+    elif response.status_code == 429:
+        retry_after = int(response.headers.get('Retry-After', 1))
+        st.warning(f"Trop de requêtes. Veuillez réessayer après {retry_after} secondes.")
+        time.sleep(retry_after)
+        return get_available_genres(token)  # Réessayez après la période d'attente
     else:
         st.error(f"Erreur lors de la récupération des genres : {response.status_code}")
         return []
+
 
 
 # Function to get recommendations based on selected filters
