@@ -122,18 +122,18 @@ with tab2:
     selected_genres = st.multiselect('Sélectionnez des Genres', formatted_genres, key='genre_select')
 
     st.markdown("<h2>Recherche d'Artistes</h2>", unsafe_allow_html=True)
-    artist_query = st.text_input('Rechercher des Artistes')
-    selected_artist = None
-    artist_id = None
-    if artist_query:
-        artists = search_artists(artist_query, token)
-        if artists:
-            artist_options = {artist['name']: artist['id'] for artist in artists}
-            selected_artist = st.selectbox('Sélectionnez un Artiste', list(artist_options.keys()), key='artist_select')
-            if selected_artist:
-                artist_id = artist_options[selected_artist]
-        else:
-            st.write("Aucun artiste trouvé")
+artist_query = st.text_input('Rechercher des Artistes', key='artist_query')
+
+selected_artist = None
+artist_id = None
+if artist_query:
+    artists = search_artists(artist_query, token)
+    if artists:
+        artist_options = {artist['name']: artist['id'] for artist in artists}
+        selected_artist = st.selectbox('Sélectionnez un Artiste', list(artist_options.keys()), key='artist_select')
+        artist_id = artist_options[selected_artist]
+    else:
+        st.write("Aucun artiste trouvé")
 
     st.markdown("<h2>Attributs des Pistes</h2>", unsafe_allow_html=True)
     popularity = st.slider('Popularité', 1, 100, (1, 100))
