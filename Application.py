@@ -72,14 +72,14 @@ def get_recommendations(token, seed_artists=None, seed_genres=None, target_popul
     return response.json().get('tracks', [])
 
 # Function to get recommendations from OpenAI
-def get_openai_recommendations(prompt):
+def get_openai_recommendations(prompt, num_tracks=20):
     response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "user", "content": f"Generate a 10 real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example {{\"playlist\": [\"Billie Jean - Michael Jackson\", \"One - U2\"]}}"}
+            {"role": "user", "content": f"Generate a {num_tracks} real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example {{\"playlist\": [\"Billie Jean - Michael Jackson\", \"One - U2\"]}}"}
         ],
         temperature=1,
-        max_tokens=400
+        max_tokens=500
     )
     return response.choices[0].message.content
 
@@ -173,32 +173,35 @@ with tab2:
                 st.write("Aucune piste trouvée correspondant aux critères")
 
 with tab1:
-    #st.markdown('<div class="section-banner">', unsafe_allow_html=True)
-    
     st.markdown("<h2>Recommandations Chat GPT</h2>", unsafe_allow_html=True)
     prompt = st.text_area("Entrez votre demande pour Chat GPT", "Fais moi une playlist 90s house classics", key='chatgpt_prompt')
+    
     if st.button('Obtenir des Recommandations Chat GPT', key='chatgpt_button'):
         progress_bar = st.progress(0)
-        
+        progress = 0
 
-        gpt_response = get_openai_recommendations(prompt)
+        all_recommendations = []
+        while len(all_recommendations) < 10:
+            gpt_response = get_openai_recommendations(prompt, num_tracks=20)
             
-        # Convert the response to track recommendations
-        token = get_token()
-        recommendations = get_spotify_recommendations_from_gpt(gpt_response, token)
-        
-        for percent_complete in range(100):
-            progress_bar.progress(percent_complete + 1)
+            # Convertir la réponse en recommandations de pistes
+            token = get_token()
+            recommendations = get_spotify_recommendations_from_gpt(gpt_response, token)
 
-        progress_bar.empty()
-            
-        if recommendations:
             # Filtrer les recommandations pour n'afficher que celles avec un preview_url non vide
             recommendations_with_preview = [track for track in recommendations if track['preview_url']]
-            
-            # Limiter l'affichage à 10 résultats
+            all_recommendations.extend(recommendations_with_preview)
+
+            progress += 20
+            if progress > 100:
+                progress = 100
+            progress_bar.progress(progress)
+
+        progress_bar.empty()
+        
+        if all_recommendations:
             count = 0
-            for track in recommendations_with_preview:
+            for track in all_recommendations:
                 if count >= 10:
                     break
                 col1, col2 = st.columns([1, 3])
