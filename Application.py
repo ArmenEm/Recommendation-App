@@ -204,8 +204,7 @@ with tab1:
                     st.write(f"*{track['album']}*")
                     year = track['release_date'].split('-')[0]
                     st.write(f"{year}")
-                    if track['preview_url']:
-                        st.audio(track['preview_url'], format="audio/mp3")
+                    st.audio(track['preview_url'], format="audio/mp3")
         else:
             st.write("Aucune piste trouvée correspondant aux critères")
     
