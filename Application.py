@@ -181,33 +181,33 @@ with tab1:
         progress_bar = st.progress(0)
         
 
-            gpt_response = get_openai_recommendations(prompt)
+        gpt_response = get_openai_recommendations(prompt)
             
-            # Convert the response to track recommendations
-            token = get_token()
-            recommendations = get_spotify_recommendations_from_gpt(gpt_response, token)
+        # Convert the response to track recommendations
+        token = get_token()
+        recommendations = get_spotify_recommendations_from_gpt(gpt_response, token)
         
-            for percent_complete in range(100):
-                progress_bar.progress(percent_complete + 1)
-                
-            progress_bar.empty()
+        for percent_complete in range(100):
+            progress_bar.progress(percent_complete + 1)
+
+        progress_bar.empty()
             
-            if recommendations:
-                for track in recommendations[:10]:
-                    col1, col2 = st.columns([1, 3])
-                    with col1:
-                        if track['image_url']:
-                            st.image(track['image_url'], use_column_width=True)
-                    with col2:
-                        st.write(f"**{track['name']}**")
-                        st.write(f"{track['artist']}")
-                        st.write(f"*{track['album']}*")
-                        year = track['release_date'].split('-')[0]
-                        st.write(f"{year}")
-                        if track['preview_url']:
-                            st.audio(track['preview_url'], format="audio/mp3")
-            else:
-                st.write("Aucune piste trouvée correspondant aux critères")
+        if recommendations:
+            for track in recommendations[:10]:
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    if track['image_url']:
+                        st.image(track['image_url'], use_column_width=True)
+                with col2:
+                    st.write(f"**{track['name']}**")
+                    st.write(f"{track['artist']}")
+                    st.write(f"*{track['album']}*")
+                    year = track['release_date'].split('-')[0]
+                    st.write(f"{year}")
+                    if track['preview_url']:
+                        st.audio(track['preview_url'], format="audio/mp3")
+        else:
+            st.write("Aucune piste trouvée correspondant aux critères")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
