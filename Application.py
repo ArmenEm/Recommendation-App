@@ -4,6 +4,24 @@ from requests.auth import HTTPBasicAuth
 import openai
 import json
 import os
+import time
+
+# Configuration de la page
+st.set_page_config(layout="wide", page_title="Recommandation Musicale")
+
+# Cacher le menu et le pied de page
+hide_default_format = """
+    <style>
+    #MainMenu {visibility: hidden; }
+    footer {visibility: hidden;}
+    .align-start {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+    </style>
+    """
+st.markdown(hide_default_format, unsafe_allow_html=True)
 
 # Spotify API credentials
 CLIENT_ID = os.getenv('CLIENT_ID')
@@ -16,7 +34,6 @@ if not CLIENT_SECRET:
     st.error("CLIENT_SECRET n'est pas défini. Assurez-vous qu'il est configuré dans vos variables d'environnement.")
 if not OPENAI_API_KEY:
     st.error("OPENAI_API_KEY n'est pas défini. Assurez-vous qu'elle est configurée dans vos variables d'environnement.")
-
 
 # Configuration de l'API OpenAI
 openai.api_key = OPENAI_API_KEY
@@ -45,8 +62,6 @@ def search_artists(query, token):
     return response.json().get('artists', {}).get('items', [])
 
 # Function to get available genres
-import time
-
 def get_available_genres(token):
     headers = {'Authorization': f'Bearer {token}'}
     response = requests.get('https://api.spotify.com/v1/recommendations/available-genre-seeds', headers=headers)
@@ -61,8 +76,6 @@ def get_available_genres(token):
     else:
         st.error(f"Erreur lors de la récupération des genres : {response.status_code}")
         return []
-
-
 
 # Function to get recommendations based on selected filters
 def get_recommendations(token, seed_artists=None, seed_genres=None, target_popularity=None, target_energy=None, target_danceability=None):
@@ -119,90 +132,10 @@ def get_spotify_recommendations_from_gpt(gpt_response, token):
     return track_details
 
 # Main Streamlit application
-st.markdown("# 🎵 Application de Recommandation Musicale 🎵")
+st.markdown("# 🎵 Application de Recommandation Musicale 〽️")
 
 # Tabs
 tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par Filtres"])
-
-with tab2:
-    # Authentication
-    token = get_token()
-
-    # Get available genres
-    genres = get_available_genres(token)
-    formatted_genres = [genre.capitalize() for genre in genres]
-
-    st.markdown("<h2>Sélection de Genres</h2>", unsafe_allow_html=True)
-    selected_genres = st.multiselect('Sélectionnez des Genres', formatted_genres, key='genre_select')
-
-    st.markdown("<h2>Recherche d'Artistes</h2>", unsafe_allow_html=True)
-artist_query = st.text_input('Rechercher des Artistes', key='artist_query')
-
-selected_artist = None
-artist_id = None
-if artist_query:
-    artists = search_artists(artist_query, token)
-    if artists:
-        artist_options = {artist['name']: artist['id'] for artist in artists}
-        selected_artist = st.selectbox('Sélectionnez un Artiste', list(artist_options.keys()), key='artist_select')
-        artist_id = artist_options[selected_artist]
-    else:
-        st.write("Aucun artiste trouvé")
-
-    st.markdown("<h2>Attributs des Pistes</h2>", unsafe_allow_html=True)
-    popularity = st.slider('Popularité', 1, 100, (1, 100))
-    energy_level = st.slider('Niveau d’Énergie', 1, 100, (1, 100))
-    danceability_level = st.slider('Dansabilité', 1, 100, (1, 100))
-
-    if st.button('Recommandations'):
-        with st.spinner('Récupération des recommandations...'):
-            if artist_id:
-                # Recommander les meilleures pistes de l'artiste sélectionné
-                response = requests.get(f'https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=US', headers={'Authorization': f'Bearer {token}'})
-                recommendations = response.json().get('tracks', [])
-            elif selected_genres:
-                # Recommander des pistes basées sur les genres sélectionnés
-                seed_genres = ','.join(selected_genres).lower()
-                recommendations = get_recommendations(
-                    token,
-                    seed_genres=seed_genres,
-                    target_popularity=popularity,
-                    target_energy=energy_level,
-                    target_danceability=danceability_level
-                )
-            else:
-                # Obtenir des recommandations générales
-                recommendations = get_recommendations(
-                    token,
-                    target_popularity=popularity,
-                    target_energy=energy_level,
-                    target_danceability=danceability_level
-                )
-
-            if recommendations:
-                # Filtrer les recommandations pour n'afficher que celles avec un preview_url non vide
-                recommendations_with_preview = [track for track in recommendations if track['preview_url']]
-
-                # Limiter l'affichage à 10 résultats
-                count = 0
-                for track in recommendations_with_preview:
-                    if count >= 10:
-                        break
-                    col1, col2 = st.columns([1, 3])
-                    with col1:
-                        if track['album']['images']:
-                            st.image(track['album']['images'][0]['url'], use_column_width=True)
-                    with col2:
-                        st.write(f"**{track['name']}**")
-                        st.write(f"{', '.join([artist['name'] for artist in track['artists']])}")
-                        st.write(f"*{track['album']['name']}*")
-                        year = track['album']['release_date'].split('-')[0]
-                        st.write(f"{year}")
-                        st.audio(track['preview_url'], format="audio/mp3")
-                    count += 1
-            else:
-                st.write("Aucune piste trouvée correspondant aux critères")
-
 
 with tab1:
     st.markdown("<h2>Recommandations Chat GPT</h2>", unsafe_allow_html=True)
@@ -253,45 +186,90 @@ with tab1:
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Apply custom CSS for styling
-st.markdown("""
-    <style>
-    body {
-        background-color: #121212;
-        color: #FFFFFF;
-    }
-    .main-banner {
-        background-color: black;
-        padding: 20px;
-        text-align: center;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-    .main-banner h1 {
-        font-family: 'Roboto', sans-serif;
-        color: #1DB954;
-        font-size: 40px;
-    }
-    .section-banner {
-        background-color: #282828;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-    .section-banner h2 {
-        font-family: 'Helvetica Neue', sans-serif;
-        color: #1DB954;
-    }
-    .result-card {
-        background-color: #333333;
-        padding: 10px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-    }
-    .result-card img {
-        margin-right: 20px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+with tab2:
+    # Authentication
+    token = get_token()
+
+    # Get available genres
+    genres = get_available_genres(token)
+    formatted_genres = [genre.capitalize() for genre in genres]
+
+    st.markdown("<h2>Sélection de Genres</h2>", unsafe_allow_html=True)
+
+    left, right = st.columns(2)
+    
+    with left:
+        st.markdown('<div class="align-start">', unsafe_allow_html=True)
+        selected_genres = st.multiselect('Sélectionnez des Genres', formatted_genres, key='genre_select')
+
+        st.markdown("<h2>Recherche d'Artistes</h2>", unsafe_allow_html=True)
+        artist_query = st.text_input('Rechercher des Artistes', key='artist_query')
+        
+        selected_artist = None
+        artist_id = None
+        if artist_query:
+            artists = search_artists(artist_query, token)
+            if artists:
+                artist_options = {artist['name']: artist['id'] for artist in artists}
+                selected_artist = st.selectbox('Sélectionnez un Artiste', list(artist_options.keys()), key='artist_select')
+                artist_id = artist_options[selected_artist]
+            else:
+                st.write("Aucun artiste trouvé")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with right:
+        st.markdown('<div class="align-start">', unsafe_allow_html=True)
+        st.markdown("<h2>Attributs des Pistes</h2>", unsafe_allow_html=True)
+        popularity = st.slider('Popularité', 1, 100, (1, 100))
+        energy_level = st.slider('Niveau d’Énergie', 1, 100, (1, 100))
+        danceability_level = st.slider('Dansabilité', 1, 100, (1, 100))
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    if st.button('Recommandations'):
+        with st.spinner('Récupération des recommandations...'):
+            if artist_id:
+                # Recommander les meilleures pistes de l'artiste sélectionné
+                response = requests.get(f'https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=US', headers={'Authorization': f'Bearer {token}'})
+                recommendations = response.json().get('tracks', [])
+            elif selected_genres:
+                # Recommander des pistes basées sur les genres sélectionnés
+                seed_genres = ','.join(selected_genres).lower()
+                recommendations = get_recommendations(
+                    token,
+                    seed_genres=seed_genres,
+                    target_popularity=popularity,
+                    target_energy=energy_level,
+                    target_danceability=danceability_level
+                )
+            else:
+                # Obtenir des recommandations générales
+                recommendations = get_recommendations(
+                    token,
+                    target_popularity=popularity,
+                    target_energy=energy_level,
+                    target_danceability=danceability_level
+                )
+
+            if recommendations:
+                # Filtrer les recommandations pour n'afficher que celles avec un preview_url non vide
+                recommendations_with_preview = [track for track in recommendations if track['preview_url']]
+
+                # Limiter l'affichage à 10 résultats
+                count = 0
+                for track in recommendations_with_preview:
+                    if count >= 10:
+                        break
+                    col1, col2 = st.columns([1, 3])
+                    with col1:
+                        if track['album']['images']:
+                            st.image(track['album']['images'][0]['url'], use_column_width=True)
+                    with col2:
+                        st.write(f"**{track['name']}**")
+                        st.write(f"{', '.join([artist['name'] for artist in track['artists']])}")
+                        st.write(f"*{track['album']['name']}*")
+                        year = track['album']['release_date'].split('-')[0]
+                        st.write(f"{year}")
+                        st.audio(track['preview_url'], format="audio/mp3")
+                    count += 1
+            else:
+                st.write("Aucune piste trouvée correspondant aux critères")
