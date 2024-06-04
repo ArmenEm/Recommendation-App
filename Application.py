@@ -19,6 +19,11 @@ hide_default_format = """
         flex-direction: column;
         justify-content: flex-start;
     }
+    .center-button {
+        display: flex;
+        justify-content: center;
+        padding-top: 20px;
+    }
     </style>
     """
 st.markdown(hide_default_format, unsafe_allow_html=True)
@@ -132,7 +137,7 @@ def get_spotify_recommendations_from_gpt(gpt_response, token):
     return track_details
 
 # Main Streamlit application
-st.markdown("# 🎵 Application de Recommandation Musicale 〽️")
+st.markdown("# 〽️ Application de Recommandation Musicale 〽️")
 
 # Tabs
 tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par Filtres"])
@@ -194,15 +199,15 @@ with tab2:
     genres = get_available_genres(token)
     formatted_genres = [genre.capitalize() for genre in genres]
 
-    st.markdown("<h2>Sélection de Genres</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>Recommandations par filtres</h2>", unsafe_allow_html=True)
 
     left, right = st.columns(2)
     
     with left:
-        st.markdown('<div class="align-start">', unsafe_allow_html=True)
+        st.markdown("<h3>Sélection de Genres</h3>", unsafe_allow_html=True)
         selected_genres = st.multiselect('Sélectionnez des Genres', formatted_genres, key='genre_select')
 
-        st.markdown("<h2>Recherche d'Artistes</h2>", unsafe_allow_html=True)
+        st.markdown("<h3>Recherche d'Artistes</h3>", unsafe_allow_html=True)
         artist_query = st.text_input('Rechercher des Artistes', key='artist_query')
         
         selected_artist = None
@@ -215,16 +220,14 @@ with tab2:
                 artist_id = artist_options[selected_artist]
             else:
                 st.write("Aucun artiste trouvé")
-        st.markdown('</div>', unsafe_allow_html=True)
     
     with right:
-        st.markdown('<div class="align-start">', unsafe_allow_html=True)
-        st.markdown("<h2>Attributs des Pistes</h2>", unsafe_allow_html=True)
-        popularity = st.slider('Popularité', 1, 100, (1, 100))
-        energy_level = st.slider('Niveau d’Énergie', 1, 100, (1, 100))
-        danceability_level = st.slider('Dansabilité', 1, 100, (1, 100))
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("<h3>Attributs des Pistes</h3>", unsafe_allow_html=True)
+        popularity = st.slider('Niveau de Popularité du track', 1, 100, (1, 100))
+        energy_level = st.slider('Niveau d’Énergie du track', 1, 100, (1, 100))
+        danceability_level = st.slider('Niveau de Dansabilité du track', 1, 100, (1, 100))
 
+    st.markdown('<div class="center-button">', unsafe_allow_html=True)
     if st.button('Recommandations'):
         with st.spinner('Récupération des recommandations...'):
             if artist_id:
@@ -273,3 +276,4 @@ with tab2:
                     count += 1
             else:
                 st.write("Aucune piste trouvée correspondant aux critères")
+    st.markdown('</div>', unsafe_allow_html=True)
