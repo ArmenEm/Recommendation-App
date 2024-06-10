@@ -140,13 +140,13 @@ def get_spotify_recommendations_from_gpt(gpt_response, token):
 st.markdown("# 〽️ Application de Recommandation Musicale 〽️")
 
 # Tabs
-tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par Filtres"])
+tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par filtres"])
 
 with tab1:
     st.markdown("<h2>Recommandations Chat GPT</h2>", unsafe_allow_html=True)
-    prompt = st.text_area("Entrez votre demande pour Chat GPT", "Fais moi une playlist 90s house classics", key='chatgpt_prompt')
+    prompt = st.text_area("Entrez votre demande de playlist générés par Chat GPT", "Exemple : une playlist 90s house classics", key='chatgpt_prompt')
     
-    if st.button('Obtenir des Recommandations Chat GPT', key='chatgpt_button'):
+    if st.button('Obtenir des recommandations', key='chatgpt_button'):
         progress_bar = st.progress(0)
         progress = 0
 
@@ -228,7 +228,7 @@ with tab2:
         danceability_level = st.slider('Niveau de Dansabilité du track', 1, 100, (1, 100))
 
     st.markdown('<div class="center-button">', unsafe_allow_html=True)
-    if st.button('Recommandations'):
+    if st.button('Obtenir des recommandations'):
         with st.spinner('Récupération des recommandations...'):
             if artist_id:
                 # Recommander les meilleures pistes de l'artiste sélectionné
