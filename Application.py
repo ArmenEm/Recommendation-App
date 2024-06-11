@@ -144,7 +144,7 @@ tab1, tab2 = st.tabs(["Recommandations Chat GPT", "Recommandations par filtres"]
 
 with tab1:
     st.markdown("<h2>Recommandations Chat GPT</h2>", unsafe_allow_html=True)
-    prompt = st.text_area("Entrez votre demande de playlist générés par Chat GPT", "Exemple : une playlist 90s house classics", key='chatgpt_prompt')
+    prompt = st.text_area("Entrez votre demande de playlist générés par Chat GPT", "Une playlist 90s house classics", key='chatgpt_prompt')
     
     if st.button('Obtenir des recommandations', key='chatgpt_button'):
         progress_bar = st.progress(0)
