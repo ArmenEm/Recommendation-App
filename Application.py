@@ -106,7 +106,7 @@ def get_recommendations(token, seed_artists=None, seed_genres=None, target_popul
 # Function to get recommendations from OpenAI
 def get_openai_recommendations(prompt, num_tracks=20):
     response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         messages=[
             {"role": "user", "content": f"Generate a {num_tracks} real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example {{\"playlist\": [\"Billie Jean - Michael Jackson\", \"One - U2\"]}}"}
         ],
