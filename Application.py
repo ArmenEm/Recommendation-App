@@ -109,8 +109,9 @@ def get_openai_recommendations(prompt, num_tracks=20):
         model="gpt-4o",
         response_format={ "type": "json_object" },
         messages=[
-            {"role": "user", "content": f"Generate a {num_tracks} real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example {{\"playlist\": [\"Billie Jean - Michael Jackson\", \"One - U2\"]}}"}
-        ],
+                {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
+                {"role": "user", "content": f"""Generate a {num_tracks} real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example: {{"playlist": ["Billie Jean - Michael Jackson", "One - U2"]}}"""}
+            ],
         temperature=1,
         max_tokens=500
     )
