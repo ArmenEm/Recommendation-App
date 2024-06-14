@@ -117,7 +117,12 @@ def get_openai_recommendations(prompt, num_tracks=20):
 
 # Function to convert Chat GPT response to Spotify track recommendations
 def get_spotify_recommendations_from_gpt(gpt_response, token):
-    gpt_content = json.loads(gpt_response)
+    try:
+        gpt_content = json.loads(gpt_response)
+    except json.JSONDecodeError:
+        st.error("Erreur lors de l'analyse de la réponse GPT. La réponse n'est pas un JSON valide.")
+        return []
+    
     songs = gpt_content.get('playlist', [])
     track_details = []
     
