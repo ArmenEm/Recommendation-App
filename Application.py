@@ -105,26 +105,16 @@ def get_recommendations(token, seed_artists=None, seed_genres=None, target_popul
 
 # Function to get recommendations from OpenAI
 def get_openai_recommendations(prompt, num_tracks=20):
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
-                {"role": "user", "content": f"Generate a {num_tracks} real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example: {\"playlist\": [\"Billie Jean - Michael Jackson\", \"One - U2\"]}"}
-            ],
-            temperature=1,
-            max_tokens=500
-        )
-        finish_reason = response['choices'][0]['finish_reason']
-        if finish_reason != 'stop':
-            raise ValueError("La génération de la réponse a été coupée avant de terminer.")
-
-        gpt_response = response['choices'][0]['message']['content']
-        return gpt_response
-    except Exception as e:
-        st.error(f"Erreur lors de l'appel à l'API OpenAI : {e}")
-        return ""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        response_format={ "type": "json_object" },
+        messages=[
+            {"role": "user", "content": f"Generate a {num_tracks} real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example {{\"playlist\": [\"Billie Jean - Michael Jackson\", \"One - U2\"]}}"}
+        ],
+        temperature=1,
+        max_tokens=500
+    )
+    return response.choices[0].message.content
 
 # Function to convert Chat GPT response to Spotify track recommendations
 def get_spotify_recommendations_from_gpt(gpt_response, token):
