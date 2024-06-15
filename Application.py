@@ -239,36 +239,33 @@ with tab2:
     st.markdown('<div class="center-button">', unsafe_allow_html=True)
     if st.button('Obtenir des recommandations'):
         with st.spinner('Récupération des recommandations...'):
+            # Préparer les paramètres pour get_recommendations
+            params = {
+                'token': token,
+                'target_popularity': popularity,
+                'target_energy': energy_level,
+                'target_danceability': danceability_level
+            }
+            
             if artist_id:
-                # Recommander les meilleures pistes de l'artiste sélectionné
-                response = requests.get(f'https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=US', headers={'Authorization': f'Bearer {token}'})
-                recommendations = response.json().get('tracks', [])
+                # Utiliser l'ID de l'artiste comme seed
+                params['seed_artists'] = artist_id
             elif selected_genres:
-                # Recommander des pistes basées sur les genres sélectionnés
+                # Ajouter les genres sélectionnés aux paramètres
                 seed_genres = ','.join(selected_genres).lower()
-                recommendations = get_recommendations(
-                    token,
-                    seed_genres=seed_genres,
-                    target_popularity=popularity,
-                    target_energy=energy_level,
-                    target_danceability=danceability_level
-                )
-            else:
-                # Obtenir des recommandations générales
-                recommendations = get_recommendations(
-                    token,
-                    target_popularity=popularity,
-                    target_energy=energy_level,
-                    target_danceability=danceability_level
-                )
+                params['seed_genres'] = seed_genres
+            
+            # Appeler la fonction get_recommendations avec les paramètres appropriés
+            recommendations = get_recommendations(**params)
+
 
             if recommendations:
                 # Filtrer les recommandations pour n'afficher que celles avec un preview_url non vide
-                recommendations_with_preview = [track for track in recommendations if track['preview_url']]
+                #recommendations_with_preview = [track for track in recommendations if track['preview_url']]
 
                 # Limiter l'affichage à 10 résultats
                 count = 0
-                for track in recommendations_with_preview:
+                for track in recommendations:
                     if count >= 10:
                         break
                     col1, col2 = st.columns([1, 3])
@@ -281,7 +278,7 @@ with tab2:
                         st.write(f"*{track['album']['name']}*")
                         year = track['album']['release_date'].split('-')[0]
                         st.write(f"{year}")
-                        st.audio(track['preview_url'], format="audio/mp3")
+                        #st.audio(track['preview_url'], format="audio/mp3")
                     count += 1
             else:
                 st.write("Aucune piste trouvée correspondant aux critères")
