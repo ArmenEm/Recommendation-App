@@ -5,6 +5,9 @@ import openai
 import json
 import os
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configuration de la page
 st.set_page_config(layout="wide", page_title="Recommandation Musicale")
