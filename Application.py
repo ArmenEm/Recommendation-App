@@ -104,43 +104,24 @@ def get_recommendations(token, seed_artists=None, seed_genres=None, target_popul
     return response.json().get('tracks', [])
 
 # Function to get recommendations from OpenAI
-# Function to get recommendations from OpenAI
 def get_openai_recommendations(prompt, num_tracks=20):
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
-                {"role": "user", "content": f"""Generate a {num_tracks} real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example: {{"playlist": ["Billie Jean - Michael Jackson", "One - U2"]}}"""}
-            ],
-            temperature=1,
-            max_tokens=500
-        )
-        finish_reason = response.choices[0].finish_reason
-        if finish_reason != 'stop':
-            raise ValueError("La génération de la réponse a été coupée avant de terminer.")
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        response_format={ "type": "json_object" },
+        messages=[
+            {"role": "user", "content": f"Generate a {num_tracks} real songs playlist based on the following input: {prompt}. Answer only with a JSON array, for each item return the song and the artist like this example {{\"playlist\": [\"Billie Jean - Michael Jackson\", \"One - U2\"]}}"}
+        ],
+        temperature=1,
+        max_tokens=500
+    )
+    return response.choices[0].message.content
 
-        gpt_response = response.choices[0].message['content']
-        st.write(f"Réponse brute de GPT: {gpt_response}")  # Afficher la réponse brute pour le diagnostic
-        return gpt_response
-    except Exception as e:
-        st.error(f"Erreur lors de l'appel à l'API OpenAI : {e}")
-        return ""
-    
-
-# Function to convert Chat GPT response to Spotify track recommendations
 # Function to convert Chat GPT response to Spotify track recommendations
 def get_spotify_recommendations_from_gpt(gpt_response, token):
     try:
-        if not gpt_response:
-            raise ValueError("La réponse de GPT est vide.")
-        
         gpt_content = json.loads(gpt_response)
     except json.JSONDecodeError:
         st.error("Erreur lors de l'analyse de la réponse GPT. La réponse n'est pas un JSON valide.")
-        return []
-    except ValueError as e:
-        st.error(str(e))
         return []
     
     songs = gpt_content.get('playlist', [])
